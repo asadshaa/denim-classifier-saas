@@ -2,7 +2,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 
-const AI_SERVICE_URL = 'http://localhost:8000/predict';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000/predict';
 
 exports.runInference = async (imagePath) => {
   try {
