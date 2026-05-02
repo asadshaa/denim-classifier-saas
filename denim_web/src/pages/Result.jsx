@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import axios from 'axios';
+import API_URL from '../api';
 
 const Result = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Result = () => {
     setFeedbackLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-      await axios.post(`http://localhost:5000/api/predict/feedback/${currentScan._id}`, { feedback: value }, config);
+      await axios.post(`${API_URL}/api/predict/feedback/${currentScan._id}`, { feedback: value }, config);
       setFeedback(value);
     } catch (err) {
       console.error('Feedback failed:', err);
@@ -88,8 +89,8 @@ const Result = () => {
       setHeatmapLoading(true);
       try {
         const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-        const res = await axios.get(`http://localhost:5000/api/predict/heatmap/${currentScan._id}`, config);
-        setHeatmapUrl(`http://localhost:5000${res.data.heatmapUrl}`);
+        const res = await axios.get(`${API_URL}/api/predict/heatmap/${currentScan._id}`, config);
+        setHeatmapUrl(`${API_URL}${res.data.heatmapUrl}`);
       } catch (err) {
         console.error('Failed to load heatmap', err);
         setShowHeatmap(false);
@@ -150,7 +151,7 @@ const Result = () => {
         <div className="lg:col-span-5 space-y-8">
            <div className="glass-card rounded-[3rem] overflow-hidden p-4 relative group shadow-2xl border-white/[0.03]">
               <img 
-                src={`http://localhost:5000${currentScan.imageUrl}`} 
+                src={`${API_URL}${currentScan.imageUrl}`} 
                 alt="Analyzed Fabric" 
                 className="w-full h-auto object-cover rounded-[2.25rem] shadow-2xl" 
               />

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useScanStore } from '../store/scanStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import API_URL from '../api';
 
 const Upload = () => {
   const [files, setFiles] = useState([]);
@@ -52,7 +53,7 @@ const Upload = () => {
         setStatusText("Neural Mapping...");
         const formData = new FormData();
         formData.append('image', files[0]);
-        const res = await axios.post('http://localhost:5000/api/predict', formData, config);
+        const res = await axios.post(`${API_URL}/api/predict`, formData, config);
         
         const scanData = res.data;
         setCurrentScan(scanData);
@@ -70,12 +71,12 @@ const Upload = () => {
         const formData = new FormData();
         files.forEach(f => formData.append('images', f));
         
-        const initRes = await axios.post('http://localhost:5000/api/predict/batch', formData, config);
+        const initRes = await axios.post(`${API_URL}/api/predict/batch`, formData, config);
         const { jobId } = initRes.data;
 
         const intervalId = setInterval(async () => {
           try {
-            const statusRes = await axios.get(`http://localhost:5000/api/predict/batch/${jobId}`, config);
+            const statusRes = await axios.get(`${API_URL}/api/predict/batch/${jobId}`, config);
             const job = statusRes.data;
             const pct = Math.round((job.processed / job.total) * 100);
             setProgress(pct);

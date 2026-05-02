@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../api';
 import { useScanStore } from '../store/scanStore';
 
 const Dashboard = () => {
@@ -168,7 +169,7 @@ const Dashboard = () => {
                         <div className="w-12 h-12 rounded-xl bg-background/5 border border-white/10 overflow-hidden group-hover:scale-110 transition-transform shadow-2xl flex items-center justify-center">
                            {/* For client-side, we might not have a URL without base64 or server static files, so use an icon fallback if needed, but if the backend returns a local url, we use it */}
                            {scan.imageUrl ? (
-                             <img src={`http://localhost:5000${scan.imageUrl}`} className="w-full h-full object-cover" alt="Fabric" />
+                             <img src={`${API_URL}${scan.imageUrl}`} className="w-full h-full object-cover" alt="Fabric" />
                            ) : (
                              <Database className="w-6 h-6 text-muted-foreground/70" />
                            )}

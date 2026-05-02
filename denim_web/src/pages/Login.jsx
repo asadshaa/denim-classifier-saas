@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import API_URL from '../api';
 import { ArrowRight, Mail, Lock, ShieldCheck, Sparkles, Layers, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import InteractiveDots from '../components/InteractiveDots';
 
@@ -19,7 +20,7 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       login(res.data.user, res.data.token);
       navigate('/dashboard');
     } catch (err) {
