@@ -54,8 +54,77 @@ const DatasetExplorer = () => {
     }
   };
 
+  const [showCorrection, setShowCorrection] = useState(false);
+  const [activeItem, setActiveItem] = useState(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+
+  const DENIM_CLASSES = [
+    "138-CG", "1553-EL", "1583-EM", "1600-JK", "1780-A", "1830-BE", "1830-BZ",
+    "1952-BC", "1965-G", "1976-W", "2034-A", "2051", "P140394I", "P140406BB",
+    "P140541", "P140676", "P140813", "P140858", "P140901", "PRP180CA", "PRT0235AY"
+  ];
+
+  const handleFeedback = async (item, value, trueClass = null) => {
+    if (feedbackLoading) return;
+    
+    if (value === 'incorrect' && !trueClass) {
+      setActiveItem(item);
+      setShowCorrection(true);
+      return;
+    }
+
+    setFeedbackLoading(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+      const payload = { feedback: value };
+      if (trueClass) payload.true_class = trueClass;
+      
+      await axios.post(`http://localhost:5000/api/predict/feedback/${item._id}`, payload, config);
+      
+      // Update local state to show change immediately
+      setDataset(prev => prev.map(p => p._id === item._id ? { ...p, feedback: value } : p));
+      setShowCorrection(false);
+    } catch (err) {
+      console.error('Feedback failed:', err);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in font-manrope pb-20">
+      {/* Correction Modal */}
+      {showCorrection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-xl p-6">
+          <motion.div 
+            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+            className="glass-card max-w-lg w-full p-10 rounded-[3rem] border-white/10 shadow-2xl"
+          >
+            <h2 className="text-3xl font-black text-foreground tracking-tighter mb-2 text-center">Correct Classification</h2>
+            <p className="text-muted-foreground font-bold mb-8 text-center text-sm">Assign the verified label for Active Learning.</p>
+            
+            <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-auto custom-scrollbar p-1">
+              {DENIM_CLASSES.map((cls) => (
+                <button
+                  key={cls}
+                  onClick={() => handleFeedback(activeItem, 'incorrect', cls)}
+                  className="px-4 py-3 rounded-xl border border-white/5 hover:border-primary hover:bg-primary/10 text-[10px] font-black transition-all text-left uppercase tracking-widest"
+                >
+                  {cls}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              onClick={() => setShowCorrection(false)}
+              className="w-full mt-8 py-4 rounded-2xl bg-white/5 text-muted-foreground font-black uppercase tracking-widest hover:bg-white/10 transition-colors"
+            >
+              Cancel
+            </button>
+          </motion.div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2 text-primary">
@@ -134,10 +203,24 @@ const DatasetExplorer = () => {
               <motion.div 
                 key={item._id}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className="glass-card rounded-[2rem] p-5 overflow-hidden group flex flex-col"
+                className="glass-card rounded-[2rem] p-5 overflow-hidden group flex flex-col hover:border-primary/30 transition-all cursor-pointer relative"
               >
                 <div className="aspect-video rounded-xl overflow-hidden mb-4 relative bg-muted">
                   <img src={`http://localhost:5000${item.imageUrl}`} alt="Scan" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleFeedback(item, 'correct'); }}
+                      className="p-3 rounded-full bg-emerald-500 text-white hover:scale-110 transition-transform shadow-lg"
+                    >
+                      <CheckCircle2 className="w-6 h-6" />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleFeedback(item, 'incorrect'); }}
+                      className="p-3 rounded-full bg-red-500 text-white hover:scale-110 transition-transform shadow-lg"
+                    >
+                      <XCircle className="w-6 h-6" />
+                    </button>
+                  </div>
                   <div className="absolute top-2 right-2 flex gap-2">
                     {item.feedback === 'correct' && <div className="bg-emerald-500/90 text-white p-1 rounded-lg backdrop-blur-sm"><CheckCircle2 className="w-4 h-4" /></div>}
                     {item.feedback === 'incorrect' && <div className="bg-red-500/90 text-white p-1 rounded-lg backdrop-blur-sm"><XCircle className="w-4 h-4" /></div>}

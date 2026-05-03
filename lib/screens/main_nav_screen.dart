@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:denim_classifier/screens/home_screen.dart';
 import 'package:denim_classifier/screens/history_screen.dart';
+import 'package:denim_classifier/screens/analytics_screen.dart';
 import 'package:denim_classifier/screens/profile_screen.dart';
 import 'package:denim_classifier/screens/settings_screen.dart';
 
@@ -18,18 +19,18 @@ class _MainNavScreenState extends State<MainNavScreen> {
   // Tabs that should NOT be rebuilt every time (heavy/stateful)
   static const Widget _homeScreen = HomeScreen();
   static const Widget _settingsScreen = SettingsScreen();
+  static const Widget _analyticsScreen = AnalyticsDashboardScreen();
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // History and Profile use a ValueKey with timestamp so they reload
-    // fresh from SharedPreferences every time the tab is tapped
     final Widget currentScreen = switch (_selectedIndex) {
       0 => _homeScreen,
       1 => HistoryScreen(key: ValueKey('history_$_selectedIndex')),
-      2 => ProfileScreen(key: ValueKey('profile_$_selectedIndex')),
-      3 => _settingsScreen,
+      2 => _analyticsScreen,
+      3 => ProfileScreen(key: ValueKey('profile_$_selectedIndex')),
+      4 => _settingsScreen,
       _ => _homeScreen,
     };
 
@@ -42,7 +43,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF252525) : Colors.black,
             borderRadius: BorderRadius.circular(40),
@@ -59,8 +60,9 @@ class _MainNavScreenState extends State<MainNavScreen> {
             children: [
               _buildNavItem(0, Icons.adf_scanner, "Scan"),
               _buildNavItem(1, Icons.history, "History"),
-              _buildNavItem(2, Icons.person, "Profile"),
-              _buildNavItem(3, Icons.settings, "Settings"),
+              _buildNavItem(2, Icons.bar_chart_rounded, "Stats"),
+              _buildNavItem(3, Icons.person, "Profile"),
+              _buildNavItem(4, Icons.settings, "Setup"),
             ],
           ),
         ),

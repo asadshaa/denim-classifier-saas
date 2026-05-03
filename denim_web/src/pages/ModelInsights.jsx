@@ -348,6 +348,40 @@ const ModelInsights = () => {
         </div>
       </div>
 
+      {/* Per-Class F1 Score — Real from Classification Report */}
+      {report?.perClass?.length > 0 && (
+        <div className="glass-card p-8 rounded-[3rem]">
+          <div className="mb-8">
+            <h3 className="text-xl font-black text-foreground tracking-tighter flex items-center gap-3">
+              <Target className="w-5 h-5 text-primary" /> Per-Class F1 Score
+            </h3>
+            <p className="text-xs text-muted-foreground font-bold mt-1">
+              Real data from your EfficientNetB0 classification report — all 21 fabric classes
+            </p>
+          </div>
+          <div className="h-[420px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={report.perClass} layout="vertical" margin={{ left: 10, right: 40 }}>
+                <CartesianGrid horizontal={false} stroke="var(--color-border)" strokeOpacity={0.5} />
+                <XAxis type="number" domain={[0.9, 1.0]} stroke="transparent" fontSize={10}
+                  tick={{ fill: 'var(--color-muted-foreground)', fontWeight: 800 }} tickLine={false}
+                  tickFormatter={v => `${(v * 100).toFixed(0)}%`} />
+                <YAxis type="category" dataKey="name" width={90} stroke="transparent" fontSize={9}
+                  tick={{ fill: 'var(--color-muted-foreground)', fontWeight: 800 }} tickLine={false} />
+                <RechartsTooltip {...CHART_STYLE}
+                  formatter={(v, name) => [`${(v * 100).toFixed(1)}%`, 'F1 Score']} />
+                <Bar dataKey="f1" radius={[0, 8, 8, 0]} barSize={14}>
+                  {report.perClass.map((entry, index) => {
+                    const color = entry.f1 >= 0.99 ? '#10b981' : entry.f1 >= 0.97 ? '#80CBC4' : '#f59e0b';
+                    return <Cell key={index} fill={color} fillOpacity={0.9} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Confusion Matrix */}
       <div className="glass-card p-10 rounded-[4rem] overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">

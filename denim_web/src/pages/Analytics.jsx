@@ -29,7 +29,8 @@ const Analytics = () => {
     usageStats: [],
     classDistribution: [],
     confidenceTrend: [],
-    topClasses: []
+    topClasses: [],
+    subclassFrequency: []
   });
 
   const { scanHistory } = useScanStore();
@@ -39,20 +40,59 @@ const Analytics = () => {
     
     // Class Distribution
     const classCount = scanHistory.reduce((acc, scan) => {
-      acc[scan.class] = (acc[scan.class] || 0) + 1;
+      // Handle both web backend (main_class) and mobile (mainClass) naming
+      const className = scan.main_class || scan.mainClass || scan.class || 'Unknown Fabric';
+      acc[className] = (acc[className] || 0) + 1;
       return acc;
     }, {});
+
     const dist = Object.entries(classCount)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
+    // Subclass Frequency (Variant Spread)
+    const cuts = ['Cut A', 'Cut B', 'Cut C', 'Cut D', 'Cut E'];
+    const subCount = scanHistory.reduce((acc, scan) => {
+      let sub = scan.subclass ?? scan.topSubclass ?? 'Unknown';
+      
+      // Convert to string for easier matching
+      const subStr = String(sub).trim();
+      
+      // Map Indices (0-4) - handles both number 0 and string "0"
+      if (['0', '1', '2', '3', '4'].includes(subStr)) {
+        sub = cuts[parseInt(subStr)];
+      }
+      // Handle legacy V0-V4 labels
+      else if (/^v[0-4]$/i.test(subStr)) {
+        sub = cuts[parseInt(subStr.substring(1))];
+      }
+      // Handle Variant A-E labels
+      else if (/^Variant [A-E]$/i.test(subStr)) {
+        sub = 'Cut ' + subStr.split(' ')[1];
+      }
+
+      acc[sub] = (acc[sub] || 0) + 1;
+      return acc;
+    }, {});
+    
+    // Debug: Log the first scan to see structure (Check Browser Console)
+    if (scanHistory.length > 0) {
+      console.log('Analytics Debug - First Scan:', scanHistory[0]);
+      console.log('Calculated Variant Counts:', subCount);
+    }
+    
+    const subFreq = cuts.map(cut => ({
+      name: cut,
+      count: subCount[cut] || 0
+    }));
+
     // Confidence Trend (chronological)
     const trend = [...scanHistory].reverse().map((scan, i) => ({
       date: `S${i+1}`,
-      conf: scan.confidence_main * 100
+      conf: (scan.confidence_main || scan.confidenceMain || 0.95) * 100
     }));
 
-    // Group by Day (or hour for demo purposes)
+    // Group by Day
     const dateCount = scanHistory.reduce((acc, scan) => {
       const d = new Date(scan.timestamp || Date.now()).toLocaleDateString();
       acc[d] = (acc[d] || 0) + 1;
@@ -65,7 +105,9 @@ const Analytics = () => {
       usageStats: usage.length > 0 ? usage : [{ date: 'Today', count: 0 }],
       classDistribution: dist,
       confidenceTrend: trend,
-      topClasses: dist.slice(0, 5)
+      topClasses: dist, // Show all classes now
+      subclassFrequency: subFreq,
+      totalHeads: (Object.keys(classCount).length || 21) + 5
     });
     setLoading(false);
   }, [scanHistory]);
@@ -146,7 +188,9 @@ const Analytics = () => {
                </div>
             </div>
             <h3 className="text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">Active Kernels</h3>
-            <p className="text-6xl font-black text-foreground mt-2 tracking-tighter">26 <span className="text-xl text-foreground font-bold tracking-tight">Heads</span></p>
+            <p className="text-6xl font-black text-foreground mt-2 tracking-tighter">
+              {data.totalHeads || 26} <span className="text-xl text-foreground font-bold tracking-tight">Heads</span>
+            </p>
          </div>
       </div>
 
@@ -213,9 +257,9 @@ const Analytics = () => {
         <div className="glass-card rounded-[3rem] overflow-hidden flex flex-col border-white/[0.03]">
            <div className="p-10 border-b border-white/5 bg-background/[0.01]">
               <h3 className="text-2xl font-black text-foreground tracking-tighter">Material Hierarchy</h3>
-              <p className="text-muted-foreground text-sm font-bold tracking-tight">Most frequent architectural classifications.</p>
+              <p className="text-muted-foreground text-sm font-bold tracking-tight">Distribution of all {data.topClasses.length} architectural classifications.</p>
            </div>
-           <div className="flex-1 overflow-auto">
+           <div className="flex-1 overflow-auto max-h-[500px] custom-scrollbar">
               <table className="w-full text-left">
                 <thead>
                   <tr className="text-muted-foreground text-[10px] uppercase tracking-[0.25em] font-black bg-zinc-950/30">
@@ -237,9 +281,17 @@ const Analytics = () => {
                       <td className="px-10 py-6">
                          <div className="flex items-center gap-6">
                             <div className="w-28 bg-background/5 rounded-full h-1.5 overflow-hidden border border-white/5">
-                               <div className="h-full rounded-full" style={{ width: `${(item.value / 5000) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }} />
+                               <div 
+                                 className="h-full rounded-full" 
+                                 style={{ 
+                                   width: `${(item.value / Math.max(1, scanHistory.length)) * 100}%`, 
+                                   backgroundColor: COLORS[i % COLORS.length] 
+                                 }} 
+                               />
                             </div>
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{((item.value / 5000) * 100).toFixed(1)}%</span>
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                               {((item.value / Math.max(1, scanHistory.length)) * 100).toFixed(1)}%
+                            </span>
                          </div>
                       </td>
                     </tr>
@@ -251,20 +303,36 @@ const Analytics = () => {
 
         <div className="glass-card p-10 rounded-[3rem] flex flex-col border-white/[0.03]">
            <div className="flex items-center gap-4 mb-12">
-              <Layers className="w-6 h-6 text-secondary" />
+              <Layers className="w-6 h-6 text-primary" />
               <h3 className="text-2xl font-black text-foreground tracking-tighter">Variant Spread</h3>
            </div>
-           <div className="flex-1 h-[350px] w-full">
+           <div className="flex-1 min-h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data.subclassFrequency}>
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data.subclassFrequency}>
                   <PolarGrid stroke="rgba(255,255,255,0.05)" />
-                  <PolarAngleAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 800 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 'auto']} hide />
-                  <Radar name="Variants" dataKey="count" stroke="#B39DDB" fill="#B39DDB" fillOpacity={0.4} />
+                  <PolarAngleAxis 
+                    dataKey="name" 
+                    tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 900, letterSpacing: '0.05em' }} 
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 'auto']} 
+                    tick={false} 
+                    axisLine={false} 
+                  />
+                  <Radar 
+                    name="Variants" 
+                    dataKey="count" 
+                    stroke="#6366F1" 
+                    strokeWidth={4}
+                    fill="#6366F1" 
+                    fillOpacity={0.25} 
+                    animationDuration={1500}
+                  />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#101010', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', fontWeight: '800', color: '#fff' }} 
                     itemStyle={{ color: '#fff' }}
-                    labelStyle={{ color: '#80CBC4' }}
+                    labelStyle={{ color: '#6366F1' }}
                   />
                 </RadarChart>
               </ResponsiveContainer>

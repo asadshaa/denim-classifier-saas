@@ -25,23 +25,36 @@ const Dashboard = () => {
     totalScans: 0,
     avgConfidence: 0,
     activeAnomalies: 0,
-    growth: 12.5
+    avgLatency: 0,
+    growth: 0
   });
 
   // Take latest 5 from history
   const recentScans = scanHistory.slice(0, 5);
 
   useEffect(() => {
-    // Calculate stats purely from client-side history
     const total = scanHistory.length;
+    
+    // Avg Confidence
     const avg = total > 0 ? (scanHistory.reduce((acc, curr) => acc + curr.confidence_main, 0) / total) * 100 : 0;
+    
+    // Anomalies
     const anomalies = scanHistory.filter(s => s.confidence_main < 0.85).length;
+    
+    // Avg Latency
+    const latency = total > 0 
+      ? scanHistory.reduce((acc, curr) => acc + (curr.inference_time_ms || 0), 0) / total 
+      : 0;
+
+    // Pseudo-Growth Calculation (Relative to a baseline of 50 for the demo)
+    const growth = total > 0 ? ((total / 50) * 100).toFixed(1) : 0;
     
     setStats({
       totalScans: total,
       avgConfidence: avg.toFixed(1),
       activeAnomalies: anomalies,
-      growth: 12.5
+      avgLatency: latency.toFixed(0),
+      growth
     });
   }, [scanHistory]);
 
@@ -49,7 +62,7 @@ const Dashboard = () => {
     { 
       title: 'Total Scans', 
       value: stats.totalScans, 
-      trend: '+14%', 
+      trend: `+${stats.growth}%`, 
       isPositive: true, 
       icon: <Database className="w-5 h-5 text-primary" />,
       color: 'primary'
@@ -57,7 +70,7 @@ const Dashboard = () => {
     { 
       title: 'Avg Confidence', 
       value: `${stats.avgConfidence}%`, 
-      trend: '+2.1%', 
+      trend: stats.avgConfidence > 95 ? 'High' : 'Optimal', 
       isPositive: true, 
       icon: <TrendingUp className="w-5 h-5 text-secondary" />,
       color: 'secondary'
@@ -65,15 +78,15 @@ const Dashboard = () => {
     { 
       title: 'Low Conf Anomalies', 
       value: stats.activeAnomalies, 
-      trend: '-5%', 
-      isPositive: true, 
+      trend: stats.activeAnomalies > 5 ? 'Warning' : 'Low', 
+      isPositive: stats.activeAnomalies <= 5, 
       icon: <Activity className="w-5 h-5 text-orange-400" />,
       color: 'orange'
     },
     { 
-      title: 'System Uptime', 
-      value: '99.9%', 
-      trend: 'Stable', 
+      title: 'Avg Latency', 
+      value: `${stats.avgLatency}ms`, 
+      trend: stats.avgLatency < 150 ? 'Turbo' : 'Stable', 
       isPositive: true, 
       icon: <Zap className="w-5 h-5 text-emerald-400" />,
       color: 'emerald'
@@ -213,9 +226,9 @@ const Dashboard = () => {
               
               <div className="space-y-10">
                 {[
-                  { label: 'CNN Extraction', val: '12ms', status: 'Optimal', color: 'primary' },
-                  { label: 'Multi-Head Logic', val: '28ms', status: 'Optimal', color: 'secondary' },
-                  { label: 'Database I/O', val: '5ms', status: 'Optimal', color: 'emerald' }
+                  { label: 'CNN Extraction', val: `${(stats.avgLatency * 0.6).toFixed(0)}ms`, status: 'Optimal', color: 'primary' },
+                  { label: 'Multi-Head Logic', val: `${(stats.avgLatency * 0.4).toFixed(0)}ms`, status: 'Optimal', color: 'secondary' },
+                  { label: 'Database I/O', val: '4ms', status: 'Optimal', color: 'emerald' }
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-center">
                     <div>

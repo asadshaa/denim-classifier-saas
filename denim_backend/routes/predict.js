@@ -199,14 +199,23 @@ router.get('/:id', auth, async (req, res) => {
 // @access  Private
 router.post('/feedback/:id', auth, async (req, res) => {
   try {
-    const { feedback } = req.body;
+    const { feedback, true_class } = req.body;
     if (!['correct', 'incorrect'].includes(feedback)) {
       return res.status(400).json({ msg: 'Invalid feedback value' });
     }
 
+    const update = { feedback };
+    if (feedback === 'incorrect' && true_class) {
+      update.true_class = true_class;
+    } else if (feedback === 'correct') {
+      // If correct, true_class is the main_class itself
+      const current = await Prediction.findById(req.params.id);
+      update.true_class = current?.main_class;
+    }
+
     const prediction = await Prediction.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
-      { $set: { feedback } },
+      { $set: update },
       { new: true }
     );
     if (!prediction) return res.status(404).json({ msg: 'Prediction not found' });

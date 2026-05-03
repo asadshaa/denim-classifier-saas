@@ -32,14 +32,33 @@ const Result = () => {
   const [heatmapLoading, setHeatmapLoading] = useState(false);
   const [feedback, setFeedback] = useState(currentScan?.feedback || null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [showCorrection, setShowCorrection] = useState(false);
+  const [selectedClass, setSelectedClass] = useState('');
 
-  const handleFeedback = async (value) => {
-    if (feedback === value || feedbackLoading) return;
+  const DENIM_CLASSES = [
+    "138-CG", "1553-EL", "1583-EM", "1600-JK", "1780-A", "1830-BE", "1830-BZ",
+    "1952-BC", "1965-G", "1976-W", "2034-A", "2051", "P140394I", "P140406BB",
+    "P140541", "P140676", "P140813", "P140858", "P140901", "PRP180CA", "PRT0235AY"
+  ];
+
+  const handleFeedback = async (value, trueClass = null) => {
+    if (feedbackLoading) return;
+    
+    // If marking as incorrect, first show the selection UI
+    if (value === 'incorrect' && !trueClass) {
+      setShowCorrection(true);
+      return;
+    }
+
     setFeedbackLoading(true);
     try {
       const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-      await axios.post(`${API_URL}/api/predict/feedback/${currentScan._id}`, { feedback: value }, config);
+      const payload = { feedback: value };
+      if (trueClass) payload.true_class = trueClass;
+      
+      await axios.post(`${API_URL}/api/predict/feedback/${currentScan._id}`, payload, config);
       setFeedback(value);
+      setShowCorrection(false);
     } catch (err) {
       console.error('Feedback failed:', err);
     } finally {
@@ -102,6 +121,43 @@ const Result = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 animate-in font-manrope">
+      {/* Correction Modal Overlay */}
+      <AnimatePresence>
+        {showCorrection && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-xl p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="glass-card max-w-lg w-full p-10 rounded-[3rem] border-white/10 shadow-2xl"
+            >
+              <h2 className="text-3xl font-black text-foreground tracking-tighter mb-2">Active Learning</h2>
+              <p className="text-muted-foreground font-bold mb-8">What is the actual fabric classification for this sample?</p>
+              
+              <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-auto custom-scrollbar p-1">
+                {DENIM_CLASSES.map((cls) => (
+                  <button
+                    key={cls}
+                    onClick={() => handleFeedback('incorrect', cls)}
+                    className="px-4 py-3 rounded-xl border border-white/5 hover:border-primary hover:bg-primary/10 text-xs font-black transition-all text-left"
+                  >
+                    {cls}
+                  </button>
+                ))}
+              </div>
+              
+              <button 
+                onClick={() => setShowCorrection(false)}
+                className="w-full mt-8 py-4 rounded-2xl bg-white/5 text-muted-foreground font-black uppercase tracking-widest hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Nav */}
       <div className="flex items-center justify-between">
          <button 

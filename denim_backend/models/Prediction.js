@@ -39,6 +39,10 @@ const predictionSchema = new mongoose.Schema({
     enum: ['correct', 'incorrect', null],
     default: null
   },
+  true_class: {
+    type: String,
+    default: null
+  },
   heatmapUrl: {
     type: String,
     default: null
