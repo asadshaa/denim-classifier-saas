@@ -7,9 +7,9 @@ import {
   Search, Zap, CheckCircle2, AlertTriangle, PackageOpen
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useScanStore } from '../store/scanStore';
 import InteractiveDots from './InteractiveDots';
 import CommandPalette from './CommandPalette';
-import logoImage from '../logo/us-denim-logo.png';
 import axios from 'axios';
 
 const ACTION_ICONS = {
@@ -70,7 +70,10 @@ const AppShell = () => {
     return () => clearInterval(interval);
   }, [fetchActivity]);
 
+  const { clearHistory } = useScanStore();
+
   const handleLogout = () => {
+    clearHistory(); // Wipe local scan cache
     logout();
     navigate('/login');
   };
@@ -95,7 +98,10 @@ const AppShell = () => {
       >
         <div className="p-6 flex items-center justify-between">
           <div className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'hidden' : 'flex'}`}>
-            <img src={logoImage} alt="US Denim Logo" className="h-10 w-auto object-contain shrink-0" />
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-border">
+              <img src="/logo.png" alt="US Denim Logo" className="w-full h-full object-contain p-1" />
+            </div>
+            <span className="font-black text-foreground tracking-tighter text-lg">DenimAI</span>
           </div>
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}

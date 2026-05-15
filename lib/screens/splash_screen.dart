@@ -136,30 +136,30 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _runSequence() async {
-    await Future.delayed(const Duration(milliseconds: 250));
+    await Future.delayed(const Duration(milliseconds: 200));
 
     // 1) Crest logo fades in
     _crestFadeCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // 2) Heartbeat × 3
-    for (int i = 0; i < 3; i++) {
+    // 2) Heartbeat (Reduced to 1 pulse for speed)
+    for (int i = 0; i < 1; i++) {
       _heartbeatCtrl.forward(from: 0);
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future.delayed(const Duration(milliseconds: 800));
     }
 
     // 3) Wordmark slides up
     _wordmarkCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
 
     // 4) Ice shimmer sweep
     _shimmerCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     // 5) Hold briefly, then exit
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 200));
     _exitCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
 
     if (!mounted) return;
     Navigator.pushReplacement(

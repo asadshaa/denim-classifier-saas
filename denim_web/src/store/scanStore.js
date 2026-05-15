@@ -10,9 +10,11 @@ export const useScanStore = create(
       
       setCurrentScan: (scan) => set({ currentScan: scan }),
       
+      setScanHistory: (history) => set({ scanHistory: history }),
+      
       addScanToHistory: (scan) => set((state) => ({ 
         scanHistory: [
-          { ...scan, id: Date.now().toString(), timestamp: new Date().toISOString() }, 
+          scan, 
           ...state.scanHistory
         ] 
       })),

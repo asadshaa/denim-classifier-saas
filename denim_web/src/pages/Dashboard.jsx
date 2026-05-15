@@ -20,7 +20,7 @@ import { useScanStore } from '../store/scanStore';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { setCurrentScan, scanHistory } = useScanStore();
+  const { setCurrentScan, scanHistory, setScanHistory } = useScanStore();
   const [stats, setStats] = useState({
     totalScans: 0,
     avgConfidence: 0,
@@ -31,6 +31,19 @@ const Dashboard = () => {
 
   // Take latest 5 from history
   const recentScans = scanHistory.slice(0, 5);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+        const res = await axios.get('http://localhost:5000/api/dataset?limit=50', config);
+        setScanHistory(res.data.predictions);
+      } catch (err) {
+        console.error('Failed to sync history:', err);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   useEffect(() => {
     const total = scanHistory.length;

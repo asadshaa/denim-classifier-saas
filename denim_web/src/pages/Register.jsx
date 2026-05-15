@@ -43,15 +43,23 @@ const Register = () => {
         
         <div className="relative z-10 p-20 max-w-xl">
           <Link to="/" className="flex items-center gap-4 mb-12">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30">
-              <Layers className="w-7 h-7 text-black" />
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden border border-white/20">
+              <img 
+                src="/logo.png" 
+                alt="US Denim Logo" 
+                className="w-full h-full object-contain p-1"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = '<div class="text-[#215273] font-black text-xl">UD</div>';
+                }}
+              />
             </div>
-            <span className="text-3xl font-black text-foreground tracking-tighter">DenimAI</span>
+            <span className="text-3xl font-black text-white tracking-tighter">DenimAI</span>
           </Link>
 
-          <h1 className="text-6xl font-black text-foreground leading-tight tracking-tighter mb-8">
+          <h1 className="text-6xl font-black text-primary leading-tight tracking-tighter mb-8">
             Join the <br />
-            <span className="text-primary underline decoration-primary/30 underline-offset-8">Neural Revolution</span> <br />
+            <span className="text-white underline decoration-white/30 underline-offset-8">Neural Revolution</span> <br />
             in Textiles.
           </h1>
 
@@ -64,7 +72,7 @@ const Register = () => {
              ].map((text, i) => (
                <motion.div 
                  key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * i }}
-                 className="flex items-center gap-4 text-muted-foreground/70 font-bold"
+                 className="flex items-center gap-4 text-primary/80 font-bold"
                >
                  <CheckCircle2 className="w-5 h-5 text-primary" />
                  <span className="text-sm tracking-tight">{text}</span>

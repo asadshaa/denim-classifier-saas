@@ -239,16 +239,6 @@ const Upload = () => {
               </div>
            </div>
 
-           <div className="p-10 rounded-[3rem] bg-gradient-to-br from-primary to-emerald-600 relative overflow-hidden group shadow-2xl shadow-primary/10">
-              <div className="relative z-10 text-black">
-                 <h3 className="text-3xl font-black mb-3 tracking-tighter leading-none">Need faster training?</h3>
-                 <p className="text-black/60 text-sm font-bold leading-relaxed mb-10 max-w-[200px]">Link your private H100 cluster for millisecond training cycles.</p>
-                 <button className="w-full py-4 bg-slate-900 text-foreground font-black rounded-2xl text-sm hover:bg-muted/50 active:scale-95 transition-all shadow-2xl tracking-tight">
-                    Request Enterprise Node
-                 </button>
-              </div>
-              <Sparkles className="absolute -bottom-10 -right-10 w-40 h-40 text-black/10 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
-           </div>
         </div>
       </div>
     </div>

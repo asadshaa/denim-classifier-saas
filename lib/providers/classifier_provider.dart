@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:hive/hive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:denim_classifier/services/classifier_service.dart';
 import 'package:denim_classifier/models/classification_result.dart';
 import 'package:denim_classifier/models/prediction_record.dart';
@@ -25,7 +24,8 @@ class ClassifierProvider with ChangeNotifier {
   String? _lastError;
   String? get lastError => _lastError;
 
-  String _selectedModel = 'denim_model.tflite'; 
+  // Locked to the research-grade multimodel
+  final String _selectedModel = 'denim_model.tflite'; 
   String get selectedModel => _selectedModel;
 
   ClassifierProvider() {
@@ -33,32 +33,14 @@ class ClassifierProvider with ChangeNotifier {
   }
 
   Future<void> _init() async {
-    await _loadModelPreference();
-  }
-
-  Future<void> _loadModelPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    _selectedModel = prefs.getString('selected_model') ?? 'denim_model.tflite';
-    await _loadModel();
-    notifyListeners();
-  }
-
-  Future<void> _loadModel() async {
     await _classifierService.loadModel(_selectedModel);
   }
 
-  Future<void> setModel(String modelPath) async {
-    if (_selectedModel == modelPath) return;
-    _selectedModel = modelPath;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_model', modelPath);
-
-    _isLoading = true;
-    notifyListeners();
-
-    await _loadModel();
-
-    _isLoading = false;
+  /// Resets the current scan session
+  void clearCurrentScan() {
+    _image = null;
+    _result = null;
+    _lastError = null;
     notifyListeners();
   }
 

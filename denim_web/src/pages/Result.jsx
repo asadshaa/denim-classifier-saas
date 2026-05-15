@@ -56,6 +56,7 @@ const Result = () => {
       const payload = { feedback: value };
       if (trueClass) payload.true_class = trueClass;
       
+      if (!currentScan?._id) return;
       await axios.post(`${API_URL}/api/predict/feedback/${currentScan._id}`, payload, config);
       setFeedback(value);
       setShowCorrection(false);
@@ -90,11 +91,11 @@ const Result = () => {
   const isExploratory = predictionMode === 'exploratory';
   const displayTopK = isExploratory || showTopK;
 
-  const chartData = currentScan.top_predictions
+  const chartData = (currentScan?.top_predictions || [])
     .slice(0, displayTopK ? topKValue : 1)
     .map(p => ({
       name: p.class,
-      prob: p.prob * 100
+      prob: (p.prob || 0) * 100
     }));
 
   const handleToggleHeatmap = async () => {
@@ -108,6 +109,7 @@ const Result = () => {
       setHeatmapLoading(true);
       try {
         const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+        if (!currentScan?._id) throw new Error('No scan ID');
         const res = await axios.get(`${API_URL}/api/predict/heatmap/${currentScan._id}`, config);
         setHeatmapUrl(`${API_URL}${res.data.heatmapUrl}`);
       } catch (err) {

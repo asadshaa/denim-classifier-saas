@@ -43,15 +43,23 @@ const Login = () => {
             initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-4 mb-12"
           >
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/30">
-              <Layers className="w-7 h-7 text-black" />
+            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden border border-white/20">
+              <img 
+                src="/logo.png" 
+                alt="US Denim Logo" 
+                className="w-full h-full object-contain p-1"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = '<div class="text-[#215273] font-black text-xl">UD</div>';
+                }}
+              />
             </div>
-            <span className="text-3xl font-black text-foreground tracking-tighter">DenimAI</span>
+            <span className="text-3xl font-black text-white tracking-tighter">DenimAI</span>
           </motion.div>
 
-          <h1 className="text-6xl font-black text-foreground leading-tight tracking-tighter mb-8">
+          <h1 className="text-6xl font-black text-primary leading-tight tracking-tighter mb-8">
             The Hub for <br />
-            <span className="text-primary underline decoration-primary/30 underline-offset-8">Neural Fabric</span> <br />
+            <span className="text-white underline decoration-white/30 underline-offset-8">Neural Fabric</span> <br />
             Research.
           </h1>
 
@@ -63,7 +71,7 @@ const Login = () => {
              ].map((item, i) => (
                <motion.div 
                  key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * i }}
-                 className="flex items-center gap-4 text-muted-foreground/70 font-bold"
+                 className="flex items-center gap-4 text-primary/80 font-bold"
                >
                  {item.icon}
                  <span className="text-sm tracking-tight">{item.text}</span>
